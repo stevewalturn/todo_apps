@@ -2,19 +2,23 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:todo_apps/app/app.locator.dart';
 import 'package:todo_apps/app/app.router.dart';
+import 'package:todo_apps/services/auth_service.dart';
 
 class StartupViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
+  final _authService = locator<AuthService>();
 
-  // Place anything here that needs to happen before we get into the application
-  // ignore: strict_raw_type
-  Future runStartupLogic() async {
-    // ignore: inference_failure_on_instance_creation
-    await Future.delayed(const Duration(seconds: 3));
+  Future<void> runStartupLogic() async {
+    try {
+      await Future.delayed(const Duration(seconds: 3));
 
-    // This is where you can make decisions on where your app should navigate when
-    // you have custom startup logic
-
-    await _navigationService.replaceWithHomeView();
+      if (_authService.isAuthenticated) {
+        await _navigationService.replaceWithTodoView();
+      } else {
+        await _navigationService.replaceWithLoginView();
+      }
+    } catch (e) {
+      setError('Failed to initialize app: Please restart the application');
+    }
   }
 }

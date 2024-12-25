@@ -1,7 +1,7 @@
 {
   "package_name": "com.yeah_well.todo_apps",
-  "project_description": "The Flutter application follows the Stacked architecture, featuring routing, dependency injection, and dialog/bottom sheet management. It includes a startup screen, a home screen with a counter, a dialog, and a bottom sheet. The application also integrates with Firebase for analytics tracking and supports localization and multiple flavors (development and production).",
-  "architecture_overview": "The application is structured using the Stacked architecture, which separates the concerns of the UI, view models, and services. It uses Stacked for state management, routing, and dependency injection. The main components include the App, AppView, and various feature-specific views and view models. The application also utilizes services for managing dialogs, bottom sheets, and navigation, as well as observing screen transitions for analytics purposes.",
+  "project_description": "A comprehensive Flutter todo application featuring multi-feature authentication and task management. The app supports user registration, login, profile management, and todo list operations with a clean, modular architecture. Key features include user authentication, profile editing, todo creation/management, and persistent local storage. The application leverages Firebase for potential backend services and follows a robust Stacked architecture with dependency injection and reactive state management.",
+  "architecture_overview": "The project follows a modular, multi-layered architecture using the Stacked framework. Core architectural components include feature-specific repositories, services, and view models that encapsulate business logic. The app is structured with clear separation of concerns: presentation layer (views), business logic layer (view models), data layer (repositories and services), and models. Dependency injection is managed through app.locator.dart, enabling loose coupling between components.",
   "files": [
     {
       "name": "lib/app/app.dart",
@@ -840,6 +840,695 @@
         "package:stacked/stacked.dart",
         "package:stacked_services/stacked_services.dart"
       ]
+    },
+    {
+      "name": "lib/features/auth/login_view.dart",
+      "description": "A user interface for authentication that allows users to log into the TodoApps application by entering their email and password, with error handling and navigation to registration",
+      "class_diagram": "@startuml\nclass LoginView {\n  +builder(context, viewModel, child): Widget\n  +viewModelBuilder(context): LoginViewModel\n}\n@enduml",
+      "methods": [
+        {
+          "name": "builder",
+          "description": "Constructs the login screen UI, handling error display, input fields, login button, and registration navigation",
+          "parameters": [
+            "BuildContext",
+            "LoginViewModel",
+            "Widget?"
+          ],
+          "return_type": "Widget"
+        },
+        {
+          "name": "viewModelBuilder",
+          "description": "Creates the LoginViewModel instance for managing login state and logic",
+          "parameters": [
+            "BuildContext"
+          ],
+          "return_type": "LoginViewModel"
+        }
+      ],
+      "dependencies": [
+        "package:flutter/material.dart",
+        "package:stacked/stacked.dart",
+        "login_viewmodel.dart",
+        "ui/common/ui_helpers.dart"
+      ]
+    },
+    {
+      "name": "lib/features/auth/auth_repository.dart",
+      "description": "Authentication repository responsible for managing user authentication workflows, providing a clean abstraction layer over the underlying authentication service",
+      "class_diagram": "@startuml\nclass AuthRepository {\n  -AuthService _authService\n  +User? currentUser\n  +bool isAuthenticated\n  +login(email: String, password: String)\n  +register(username: String, email: String, password: String)\n  +logout()\n  +updateProfile(username: String, avatarUrl: String?)\n}\n@enduml",
+      "methods": [
+        {
+          "name": "login",
+          "description": "Authenticates a user with email and password credentials",
+          "parameters": [
+            "email",
+            "password"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "register",
+          "description": "Creates a new user account with username, email, and password",
+          "parameters": [
+            "username",
+            "email",
+            "password"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "logout",
+          "description": "Terminates the current user's authentication session",
+          "parameters": null,
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "updateProfile",
+          "description": "Updates user profile information like username and avatar",
+          "parameters": [
+            "username",
+            "avatarUrl"
+          ],
+          "return_type": "Future<void>"
+        }
+      ],
+      "dependencies": [
+        "todo_apps/models/user.dart",
+        "todo_apps/services/auth_service.dart"
+      ]
+    },
+    {
+      "name": "lib/features/profile/profile_viewmodel.dart",
+      "description": "Profile management ViewModel responsible for handling user profile interactions, updates, and authentication state in a Flutter/Stacked architecture application",
+      "class_diagram": "@startuml\nclass ProfileViewModel {\n  - _profileRepository: ProfileRepository\n  - _authRepository: AuthRepository\n  - _navigationService: NavigationService\n  + user: User\n  + updateProfile()\n  + logout()\n  + init()\n}\n@enduml",
+      "methods": [
+        {
+          "name": "setUsername",
+          "description": "Updates the username in the profile and triggers UI refresh",
+          "parameters": [
+            "username"
+          ],
+          "return_type": null
+        },
+        {
+          "name": "updateProfile",
+          "description": "Submits updated profile information to the backend",
+          "parameters": null,
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "logout",
+          "description": "Handles user logout process and navigation back to login screen",
+          "parameters": null,
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "init",
+          "description": "Initializes profile view model with current user data",
+          "parameters": null,
+          "return_type": null
+        }
+      ],
+      "dependencies": [
+        "stacked",
+        "stacked_services",
+        "auth_repository.dart",
+        "profile_repository.dart",
+        "user.dart"
+      ]
+    },
+    {
+      "name": "lib/features/todo/todo_repository.dart",
+      "description": "A repository layer for managing todo items that abstracts data operations, providing a clean interface between the data service and application business logic",
+      "class_diagram": "@startuml\nclass TodoRepository {\n  -TodoService _todoService\n  +getTodos()\n  +addTodo()\n  +updateTodo()\n  +deleteTodo()\n  +toggleTodoComplete()\n}\n@enduml",
+      "methods": [
+        {
+          "name": "getTodos",
+          "description": "Retrieves a list of all todo items from the underlying data service",
+          "parameters": null,
+          "return_type": "Future<List<Map<String, dynamic>>>"
+        },
+        {
+          "name": "addTodo",
+          "description": "Creates a new todo item with a title and description",
+          "parameters": [
+            "title",
+            "description"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "updateTodo",
+          "description": "Modifies an existing todo item's properties",
+          "parameters": [
+            "id",
+            "title",
+            "description",
+            "completed"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "deleteTodo",
+          "description": "Removes a specific todo item from the system",
+          "parameters": [
+            "id"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "toggleTodoComplete",
+          "description": "Switches the completion status of a specific todo item",
+          "parameters": [
+            "id"
+          ],
+          "return_type": "Future<void>"
+        }
+      ],
+      "dependencies": [
+        "todo_service.dart"
+      ]
+    },
+    {
+      "name": "lib/features/todo/todo_view.dart",
+      "description": "A Flutter view component for managing a Todo list application, providing a user interface for displaying, adding, toggling, and deleting todo items with error handling and loading states",
+      "class_diagram": "@startuml\nclass TodoView {\n  +builder(BuildContext, TodoViewModel, Widget?): Widget\n  +viewModelBuilder(BuildContext): TodoViewModel\n  +onViewModelReady(TodoViewModel): void\n}\n@enduml",
+      "methods": [
+        {
+          "name": "builder",
+          "description": "Constructs the main UI for the Todo list screen, including app bar, todo list, error handling, and floating action button for adding new todos",
+          "parameters": [
+            "BuildContext",
+            "TodoViewModel",
+            "Widget?"
+          ],
+          "return_type": "Widget"
+        },
+        {
+          "name": "viewModelBuilder",
+          "description": "Creates the TodoViewModel instance for managing todo list state and logic",
+          "parameters": [
+            "BuildContext"
+          ],
+          "return_type": "TodoViewModel"
+        },
+        {
+          "name": "onViewModelReady",
+          "description": "Initializes the TodoViewModel when the view is first created",
+          "parameters": [
+            "TodoViewModel"
+          ],
+          "return_type": null
+        }
+      ],
+      "dependencies": [
+        "package:flutter/material.dart",
+        "package:stacked/stacked.dart",
+        "todo_viewmodel.dart",
+        "widgets/todo_item.dart",
+        "ui/common/ui_helpers.dart"
+      ]
+    },
+    {
+      "name": "lib/features/todo/todo_viewmodel.dart",
+      "description": "A ViewModel for managing Todo list operations, providing a reactive and structured approach to handling todo items with state management, business logic, and user interactions",
+      "class_diagram": "@startuml\nclass TodoViewModel {\n  -_todoRepository: TodoRepository\n  -_navigationService: NavigationService\n  -_dialogService: DialogService\n  +todos: List<Map<String, dynamic>>\n  +loadTodos()\n  +addTodo(title: String, description: String)\n  +toggleTodoComplete(id: String)\n  +deleteTodo(id: String)\n  +navigateToProfile()\n  +init()\n}\n@enduml",
+      "methods": [
+        {
+          "name": "loadTodos",
+          "description": "Fetches all todo items from the repository and updates the view state",
+          "parameters": null,
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "addTodo",
+          "description": "Creates a new todo item with the given title and description",
+          "parameters": [
+            "title",
+            "description"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "toggleTodoComplete",
+          "description": "Marks a specific todo item as complete or incomplete",
+          "parameters": [
+            "id"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "deleteTodo",
+          "description": "Removes a todo item after user confirmation via dialog",
+          "parameters": [
+            "id"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "navigateToProfile",
+          "description": "Navigates to the user profile view",
+          "parameters": null,
+          "return_type": null
+        },
+        {
+          "name": "init",
+          "description": "Initializes the ViewModel by loading existing todo items",
+          "parameters": null,
+          "return_type": null
+        }
+      ],
+      "dependencies": [
+        "stacked",
+        "stacked_services",
+        "todo_apps/app/app.locator.dart",
+        "todo_apps/features/todo/todo_repository.dart"
+      ]
+    },
+    {
+      "name": "lib/features/todo/widgets/todo_item.dart",
+      "description": "A reusable UI component for rendering individual todo list items with interactive capabilities like toggle completion and deletion",
+      "class_diagram": "@startuml\nclass TodoItem {\n  +todo: Map<String, dynamic>\n  +onToggle(String id)\n  +onDelete(String id)\n  +build(BuildContext context)\n}\n@enduml",
+      "methods": [
+        {
+          "name": "build",
+          "description": "Constructs the visual representation of a todo item with checkbox, title, description, and delete button",
+          "parameters": [
+            "BuildContext context"
+          ],
+          "return_type": "Widget"
+        }
+      ],
+      "dependencies": [
+        "package:flutter/material.dart",
+        "ui/common/app_colors.dart",
+        "ui/common/ui_helpers.dart"
+      ]
+    },
+    {
+      "name": "lib/features/todo/widgets/add_todo_dialog.dart",
+      "description": "A Flutter dialog widget for creating new todo items with title and optional description, providing a user-friendly interface for adding tasks to a todo list",
+      "class_diagram": "@startuml\nclass AddTodoDialog {\n  +DialogRequest request\n  +Function(DialogResponse) completer\n  +createState()\n}\nclass _AddTodoDialogState {\n  -TextEditingController _titleController\n  -TextEditingController _descriptionController\n  +build()\n  +dispose()\n}\n@enduml",
+      "methods": [
+        {
+          "name": "build",
+          "description": "Renders the dialog UI with text input fields for title and description, and action buttons for adding or canceling the todo",
+          "parameters": null,
+          "return_type": "Widget"
+        },
+        {
+          "name": "dispose",
+          "description": "Cleans up text editing controllers to prevent memory leaks",
+          "parameters": null,
+          "return_type": "void"
+        }
+      ],
+      "dependencies": [
+        "flutter/material.dart",
+        "stacked_services/stacked_services.dart",
+        "todo_apps/ui/common/ui_helpers.dart"
+      ]
+    },
+    {
+      "name": "lib/models/user.dart",
+      "description": "Defines a User model representing user account information, providing data structure, serialization, and immutable state management for user entities in the application",
+      "class_diagram": "@startuml\nclass User {\n  + id: String\n  + username: String\n  + email: String\n  + avatarUrl: String?\n  + fromJson(json: Map): User\n  + toJson(): Map\n  + copyWith(): User\n}\n@enduml",
+      "methods": [
+        {
+          "name": "fromJson",
+          "description": "Converts JSON data into a User object, enabling deserialization of user data from external sources",
+          "parameters": [
+            "json"
+          ],
+          "return_type": "User"
+        },
+        {
+          "name": "toJson",
+          "description": "Transforms User object into a JSON map, facilitating data transmission and storage",
+          "parameters": null,
+          "return_type": "Map<String, dynamic>"
+        },
+        {
+          "name": "copyWith",
+          "description": "Creates a new User instance with selected fields updated, supporting immutable state changes",
+          "parameters": [
+            "id",
+            "username",
+            "email",
+            "avatarUrl"
+          ],
+          "return_type": "User"
+        }
+      ],
+      "dependencies": [
+        "package:equatable/equatable.dart"
+      ]
+    },
+    {
+      "name": "lib/services/auth_service.dart",
+      "description": "Authentication service responsible for managing user authentication state, handling login/registration, and profile management in a mobile application",
+      "class_diagram": "@startuml\nclass AuthService {\n  - StorageService _storageService\n  - User _currentUser\n  + login(email: String, password: String)\n  + register(username: String, email: String, password: String)\n  + logout()\n  + updateProfile(username: String, avatarUrl: String?)\n  + User? getCurrentUser()\n}\n@enduml",
+      "methods": [
+        {
+          "name": "login",
+          "description": "Authenticate user with email and password, validate credentials, and store user data",
+          "parameters": [
+            "email",
+            "password"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "register",
+          "description": "Create new user account with username, email, and password, validate inputs",
+          "parameters": [
+            "username",
+            "email",
+            "password"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "logout",
+          "description": "Clear current user session and remove stored user data",
+          "parameters": null,
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "updateProfile",
+          "description": "Update user profile information like username and avatar",
+          "parameters": [
+            "username",
+            "avatarUrl"
+          ],
+          "return_type": "Future<void>"
+        }
+      ],
+      "dependencies": [
+        "package:stacked/stacked_annotations.dart",
+        "todo_apps/models/user.dart",
+        "todo_apps/services/storage_service.dart"
+      ]
+    },
+    {
+      "name": "lib/services/storage_service.dart",
+      "description": "A comprehensive local storage service utilizing SharedPreferences for persistent data management across authentication, user profiles, and todo list features",
+      "class_diagram": "@startuml\nclass StorageService {\n  -_prefs: SharedPreferences\n  +saveData(key: String, value: dynamic)\n  +getData<T>(key: String): T?\n  +removeData(key: String)\n  +saveToken(token: String)\n  +getToken(): String?\n  +saveUserData(userData: Map)\n  +getUserData(): Map?\n  +saveTodos(todos: List<Map>)\n  +getTodos(): List<Map>?\n}\n@enduml",
+      "methods": [
+        {
+          "name": "saveData",
+          "description": "Generic method to save different data types to local storage",
+          "parameters": [
+            "key",
+            "value"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "getData",
+          "description": "Generic method to retrieve data from local storage with type safety",
+          "parameters": [
+            "key"
+          ],
+          "return_type": "T?"
+        },
+        {
+          "name": "saveToken",
+          "description": "Securely store authentication token",
+          "parameters": [
+            "token"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "getToken",
+          "description": "Retrieve stored authentication token",
+          "parameters": null,
+          "return_type": "String?"
+        },
+        {
+          "name": "saveUserData",
+          "description": "Store user profile information",
+          "parameters": [
+            "userData"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "saveTodos",
+          "description": "Persist todo list data locally",
+          "parameters": [
+            "todos"
+          ],
+          "return_type": "Future<void>"
+        }
+      ],
+      "dependencies": [
+        "shared_preferences",
+        "dart:convert",
+        "stacked/stacked_annotations.dart"
+      ]
+    },
+    {
+      "name": "lib/services/todo_service.dart",
+      "description": "A service layer responsible for managing Todo items, providing CRUD operations for todos with state management and persistence through storage service",
+      "class_diagram": "@startuml\nclass TodoService {\n  - StorageService _storageService\n  + getTodos()\n  + addTodo(title, description)\n  + updateTodo(id, title?, description?, completed?)\n  + deleteTodo(id)\n  + toggleTodoComplete(id)\n}\nclass StorageService\nTodoService --> StorageService : depends on\n@enduml",
+      "methods": [
+        {
+          "name": "getTodos",
+          "description": "Retrieves all stored todo items from storage service",
+          "parameters": null,
+          "return_type": "Future<List<Map<String, dynamic>>>"
+        },
+        {
+          "name": "addTodo",
+          "description": "Creates a new todo item with title, description, and default metadata",
+          "parameters": [
+            "title",
+            "description"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "updateTodo",
+          "description": "Updates an existing todo item by its unique ID with optional fields",
+          "parameters": [
+            "id",
+            "title?",
+            "description?",
+            "completed?"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "deleteTodo",
+          "description": "Removes a specific todo item from storage by its unique ID",
+          "parameters": [
+            "id"
+          ],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "toggleTodoComplete",
+          "description": "Switches the completion status of a specific todo item",
+          "parameters": [
+            "id"
+          ],
+          "return_type": "Future<void>"
+        }
+      ],
+      "dependencies": [
+        "stacked/stacked_annotations.dart",
+        "todo_apps/services/storage_service.dart"
+      ]
+    },
+    {
+      "name": "lib/features/profile/profile_repository.dart",
+      "description": "A repository class that manages user profile operations, providing an abstraction layer for updating user profile information through an authentication service",
+      "class_diagram": "@startuml\nclass ProfileRepository {\n  -AuthService _authService\n  +User? currentUser\n  +updateProfile(String username, String? avatarUrl)\n}\n@enduml",
+      "methods": [
+        {
+          "name": "currentUser",
+          "description": "Retrieves the currently authenticated user from the auth service",
+          "parameters": null,
+          "return_type": "User?"
+        },
+        {
+          "name": "updateProfile",
+          "description": "Updates the user's profile with a new username and optional avatar URL",
+          "parameters": [
+            "username",
+            "avatarUrl"
+          ],
+          "return_type": "Future<void>"
+        }
+      ],
+      "dependencies": [
+        "todo_apps/models/user.dart",
+        "todo_apps/services/auth_service.dart"
+      ]
+    },
+    {
+      "name": "lib/features/auth/login_viewmodel.dart",
+      "description": "Manages user login authentication and navigation flow in a Flutter/Stacked architecture application, handling user credentials, authentication state, and routing between views",
+      "class_diagram": "@startuml\nclass LoginViewModel {\n  -_authRepository: AuthRepository\n  -_navigationService: NavigationService\n  -_email: String\n  -_password: String\n  +setEmail(email: String)\n  +setPassword(password: String)\n  +login()\n  +navigateToRegister()\n}\n@enduml",
+      "methods": [
+        {
+          "name": "setEmail",
+          "description": "Updates the email input state and triggers UI refresh",
+          "parameters": [
+            "email"
+          ],
+          "return_type": null
+        },
+        {
+          "name": "setPassword",
+          "description": "Updates the password input state and triggers UI refresh",
+          "parameters": [
+            "password"
+          ],
+          "return_type": null
+        },
+        {
+          "name": "login",
+          "description": "Performs user authentication and navigates to the todo view upon successful login",
+          "parameters": null,
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "navigateToRegister",
+          "description": "Navigates user to the registration view",
+          "parameters": null,
+          "return_type": null
+        }
+      ],
+      "dependencies": [
+        "stacked/stacked.dart",
+        "stacked_services/stacked_services.dart",
+        "todo_apps/app/app.locator.dart",
+        "todo_apps/app/app.router.dart",
+        "todo_apps/features/auth/auth_repository.dart"
+      ]
+    },
+    {
+      "name": "lib/features/auth/register_viewmodel.dart",
+      "description": "A ViewModel for user registration that handles the registration process, user input management, and navigation in a Flutter/Stacked application. It manages the registration form state, validates input, and coordinates user registration with an authentication repository.",
+      "class_diagram": "@startuml\nclass RegisterViewModel {\n  - _authRepository: AuthRepository\n  - _navigationService: NavigationService\n  - _username: String\n  - _email: String\n  - _password: String\n  - _confirmPassword: String\n  + setUsername()\n  + setEmail()\n  + setPassword()\n  + setConfirmPassword()\n  + register()\n  + navigateToLogin()\n}\n@enduml",
+      "methods": [
+        {
+          "name": "setUsername",
+          "description": "Updates the username input state and triggers UI refresh",
+          "parameters": [
+            "username"
+          ],
+          "return_type": null
+        },
+        {
+          "name": "setEmail",
+          "description": "Updates the email input state and triggers UI refresh",
+          "parameters": [
+            "email"
+          ],
+          "return_type": null
+        },
+        {
+          "name": "setPassword",
+          "description": "Updates the password input state and triggers UI refresh",
+          "parameters": [
+            "password"
+          ],
+          "return_type": null
+        },
+        {
+          "name": "register",
+          "description": "Validates registration inputs, calls authentication repository to register user, and navigates to TodoView on success",
+          "parameters": [],
+          "return_type": "Future<void>"
+        },
+        {
+          "name": "navigateToLogin",
+          "description": "Navigates user to login screen when requested",
+          "parameters": [],
+          "return_type": null
+        }
+      ],
+      "dependencies": [
+        "stacked/stacked.dart",
+        "stacked_services/stacked_services.dart",
+        "todo_apps/app/app.locator.dart",
+        "todo_apps/app/app.router.dart",
+        "todo_apps/features/auth/auth_repository.dart"
+      ]
+    },
+    {
+      "name": "lib/features/auth/register_view.dart",
+      "description": "User registration view for managing the authentication user interface, providing a form-based interface for creating a new user account with validation and state management",
+      "class_diagram": "@startuml\nclass RegisterView {\n  +builder(context, viewModel, child)\n  +viewModelBuilder(context)\n}\nnote right: User registration UI component\n@enduml",
+      "methods": [
+        {
+          "name": "builder",
+          "description": "Renders the registration form UI with input fields for username, email, password, and confirmation",
+          "parameters": [
+            "BuildContext",
+            "RegisterViewModel",
+            "Widget"
+          ],
+          "return_type": "Widget"
+        },
+        {
+          "name": "viewModelBuilder",
+          "description": "Creates the associated view model for managing registration state and logic",
+          "parameters": [
+            "BuildContext"
+          ],
+          "return_type": "RegisterViewModel"
+        }
+      ],
+      "dependencies": [
+        "flutter/material.dart",
+        "stacked/stacked.dart",
+        "lib/features/auth/register_viewmodel.dart",
+        "lib/ui/common/ui_helpers.dart"
+      ]
+    },
+    {
+      "name": "lib/features/profile/profile_view.dart",
+      "description": "A user profile management screen that allows users to view and update their profile information, including username and avatar, with logout functionality",
+      "class_diagram": "@startuml\nclass ProfileView {\n  +builder()\n  +viewModelBuilder()\n  +onViewModelReady()\n}\nclass ProfileViewModel {\n  +init()\n  +setUsername()\n  +updateProfile()\n  +logout()\n}\n@enduml",
+      "methods": [
+        {
+          "name": "builder",
+          "description": "Constructs the profile view UI with user avatar, username input, and update profile button",
+          "parameters": [
+            "BuildContext",
+            "ProfileViewModel",
+            "Widget?"
+          ],
+          "return_type": "Widget"
+        },
+        {
+          "name": "viewModelBuilder",
+          "description": "Creates the ProfileViewModel instance for managing profile-related logic",
+          "parameters": [
+            "BuildContext"
+          ],
+          "return_type": "ProfileViewModel"
+        },
+        {
+          "name": "onViewModelReady",
+          "description": "Initializes the view model when the view is first loaded",
+          "parameters": [
+            "ProfileViewModel"
+          ],
+          "return_type": null
+        }
+      ],
+      "dependencies": [
+        "flutter/material.dart",
+        "stacked/stacked.dart",
+        "todo_apps/features/profile/profile_viewmodel.dart",
+        "todo_apps/ui/common/ui_helpers.dart"
+      ]
     }
   ],
   "dependencies": [
@@ -864,7 +1553,7 @@
       "purpose": "Creating gaps in layouts"
     }
   ],
-  "sequence_diagram": "@startuml\nactor User\nparticipant main\nparticipant AppView\nparticipant StartupView\nparticipant StartupViewModel\nparticipant HomeView\nparticipant HomeViewModel\n\nUser -> main: Launch app\nmain -> AppView: Create and run\nAppView -> StartupView: Initialize\nStartupView -> StartupViewModel: Run startup logic\nStartupViewModel -> HomeView: Navigate on completion\nHomeView -> HomeViewModel: Initialize\nUser -> HomeView: Interact\nHomeView -> HomeViewModel: Handle user actions\nHomeViewModel -> HomeView: Update UI\nHomeViewModel -> DialogService: Show dialog\nHomeViewModel -> BottomSheetService: Show bottom sheet\n@enduml",
-  "state_management_flow": "The application uses the Stacked architecture for state management. Each view has a corresponding ViewModel that handles the business logic and state for that view. The ViewModels are responsible for updating the UI, interacting with services (e.g., DialogService, BottomSheetService), and managing the application's overall state. The app.locator.dart file sets up the necessary dependency injections, allowing the ViewModels to access the required services.",
-  "navigation_flow": "The application's navigation is managed using the Stacked Router, defined in app.router.dart. The main entry point is the AppView, which initializes the Stacked architecture and displays the StartupView. After the startup logic is completed, the StartupViewModel navigates to the HomeView. The HomeView allows the user to interact with the application, triggering updates to the HomeViewModel, which in turn updates the UI and can show dialogs or bottom sheets as needed."
+  "sequence_diagram": "@startuml\nactor User\nparticipant LoginView\nparticipant LoginViewModel\nparticipant AuthRepository\nparticipant TodoView\nparticipant TodoViewModel\nparticipant TodoRepository\n\nUser -> LoginView: Enter credentials\nLoginView -> LoginViewModel: Validate credentials\nLoginViewModel -> AuthRepository: Authenticate\nAuthRepository --> LoginViewModel: Authentication result\nalt Authentication Successful\n    LoginViewModel -> TodoView: Navigate\n    TodoView -> TodoViewModel: Initialize\n    TodoViewModel -> TodoRepository: Load todos\n    TodoRepository --> TodoViewModel: Return todo list\n    TodoViewModel --> TodoView: Display todos\n    User -> TodoView: Interact with todos\n    User -> TodoView: Add/Edit/Delete todos\n    TodoView -> TodoViewModel: Trigger todo operations\n    TodoViewModel -> TodoRepository: Persist changes\nend\n@enduml",
+  "state_management_flow": "State management is implemented using the Stacked framework's reactive approach. ViewModels extend BaseViewModel and use reactive programming principles. Each view has a corresponding ViewModel that manages its state, handles user interactions, and triggers UI updates. State changes are propagated through reactive properties, and the UI automatically rebuilds when these properties change. Dependency injection in app.locator.dart enables seamless service and repository access across ViewModels.",
+  "navigation_flow": "Navigation is managed using Stacked Router, defined in app.router.dart. The application follows a structured navigation pattern with predefined routes like login, registration, todo list, and profile. The NavigationService handles screen transitions, allowing programmatic navigation between views. Authentication status determines the primary navigation flow, with unauthenticated users directed to login/registration views, and authenticated users navigated to the todo list view. Each navigation transition is tracked and can trigger corresponding analytics events."
 }

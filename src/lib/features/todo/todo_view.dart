@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:todo_apps/app/app.locator.dart';
 import 'package:todo_apps/features/todo/todo_viewmodel.dart';
 import 'package:todo_apps/features/todo/widgets/todo_item.dart';
+import 'package:todo_apps/shared/enums/dialog_type.dart';
 import 'package:todo_apps/ui/common/ui_helpers.dart';
 
 class TodoView extends StackedView<TodoViewModel> {
@@ -54,16 +57,18 @@ class TodoView extends StackedView<TodoViewModel> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final dialogService = DialogService();
+          final dialogService = locator<DialogService>();
           final response = await dialogService.showCustomDialog(
-            variant: DialogType.custom,
-            customData: const AddTodoDialogData(),
+            variant: DialogType.form,
+            title: 'Add Todo',
+            description: 'Enter todo details',
           );
 
           if (response?.confirmed ?? false) {
+            final data = response?.data as Map<String, dynamic>;
             await viewModel.addTodo(
-              response!.data['title'],
-              response.data['description'],
+              data['title'].toString(),
+              data['description'].toString(),
             );
           }
         },

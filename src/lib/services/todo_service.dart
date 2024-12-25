@@ -1,10 +1,11 @@
+import 'package:injectable/injectable.dart';
 import 'package:stacked/stacked_annotations.dart';
+import 'package:todo_apps/app/app.locator.dart';
 import 'package:todo_apps/services/storage_service.dart';
 
+@lazySingleton
 class TodoService implements InitializableDependency {
-  final StorageService _storageService;
-
-  TodoService(this._storageService);
+  final _storageService = locator<StorageService>();
 
   @override
   Future<void> init() async {}
@@ -14,66 +15,54 @@ class TodoService implements InitializableDependency {
       final todos = _storageService.getTodos();
       return todos ?? [];
     } catch (e) {
-      throw Exception('Failed to load todos: Please try again later');
+      throw Exception('Failed to load todos');
     }
   }
 
   Future<void> addTodo(String title, String description) async {
     try {
-      if (title.isEmpty) {
-        throw Exception('Todo title cannot be empty');
-      }
-
       final todos = await getTodos();
-      final newTodo = {
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      todos.add({
+        'id': DateTime.now().toString(),
         'title': title,
         'description': description,
         'completed': false,
-        'createdAt': DateTime.now().toIso8601String(),
-      };
-
-      todos.add(newTodo);
+      });
       await _storageService.saveTodos(todos);
     } catch (e) {
-      throw Exception('Failed to add todo: ${e.toString()}');
+      throw Exception('Failed to add todo');
     }
   }
 
-  Future<void> updateTodo(String id,
-      {String? title, String? description, bool? completed}) async {
+  Future<void> updateTodo(String id, {
+    String? title,
+    String? description,
+    bool? completed,
+  }) async {
     try {
       final todos = await getTodos();
       final index = todos.indexWhere((todo) => todo['id'] == id);
-
-      if (index == -1) {
-        throw Exception('Todo not found');
+      if (index != -1) {
+        todos[index] = {
+          ...todos[index],
+          if (title != null) 'title': title,
+          if (description != null) 'description': description,
+          if (completed != null) 'completed': completed,
+        };
+        await _storageService.saveTodos(todos);
       }
-
-      if (title != null && title.isEmpty) {
-        throw Exception('Todo title cannot be empty');
-      }
-
-      todos[index] = {
-        ...todos[index],
-        if (title != null) 'title': title,
-        if (description != null) 'description': description,
-        if (completed != null) 'completed': completed,
-      };
-
-      await _storageService.saveTodos(todos);
     } catch (e) {
-      throw Exception('Failed to update todo: ${e.toString()}');
+      throw Exception('Failed to update todo');
     }
   }
 
   Future<void> deleteTodo(String id) async {
     try {
       final todos = await getTodos();
-      final filtered = todos.where((todo) => todo['id'] != id).toList();
-      await _storageService.saveTodos(filtered);
+      todos.removeWhere((todo) => todo['id'] == id);
+      await _storageService.saveTodos(todos);
     } catch (e) {
-      throw Exception('Failed to delete todo: Please try again later');
+      throw Exception('Failed to delete todo');
     }
   }
 
@@ -81,19 +70,15 @@ class TodoService implements InitializableDependency {
     try {
       final todos = await getTodos();
       final index = todos.indexWhere((todo) => todo['id'] == id);
-
-      if (index == -1) {
-        throw Exception('Todo not found');
+      if (index != -1) {
+        final currentTodo = todos[index];
+        await updateTodo(
+          id,
+          completed: !(currentTodo['completed'] as bool),
+        );
       }
-
-      todos[index] = {
-        ...todos[index],
-        'completed': !(todos[index]['completed'] as bool),
-      };
-
-      await _storageService.saveTodos(todos);
     } catch (e) {
-      throw Exception('Failed to update todo status: Please try again later');
+      throw Exception('Failed to toggle todo status');
     }
   }
 }

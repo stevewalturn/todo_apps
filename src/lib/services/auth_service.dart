@@ -1,13 +1,14 @@
+import 'package:injectable/injectable.dart';
 import 'package:stacked/stacked_annotations.dart';
+import 'package:todo_apps/app/app.locator.dart';
 import 'package:todo_apps/models/user.dart';
 import 'package:todo_apps/services/storage_service.dart';
 
+@lazySingleton
 class AuthService implements InitializableDependency {
-  final StorageService _storageService;
+  final _storageService = locator<StorageService>();
+  
   User? _currentUser;
-
-  AuthService(this._storageService);
-
   User? get currentUser => _currentUser;
   bool get isAuthenticated => _currentUser != null;
 
@@ -24,87 +25,39 @@ class AuthService implements InitializableDependency {
   }
 
   Future<void> login(String email, String password) async {
-    try {
-      // Simulate API call with validation
-      if (email.isEmpty || password.isEmpty) {
-        throw Exception('Email and password are required');
-      }
-
-      if (!email.contains('@')) {
-        throw Exception('Please enter a valid email address');
-      }
-
-      if (password.length < 6) {
-        throw Exception('Password must be at least 6 characters');
-      }
-
-      // Simulate successful login
-      final user = User(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        username: email.split('@')[0],
-        email: email,
-      );
-
-      await _storageService.saveUserData(user.toJson());
-      _currentUser = user;
-    } catch (e) {
-      throw Exception('Login failed: ${e.toString()}');
-    }
+    // Mock implementation
+    _currentUser = User(
+      id: '1',
+      email: email,
+      username: email.split('@')[0],
+      avatarUrl: null,
+    );
+    await _storageService.saveUserData(_currentUser!.toJson());
   }
 
   Future<void> register(String username, String email, String password) async {
-    try {
-      // Validate input
-      if (username.isEmpty || email.isEmpty || password.isEmpty) {
-        throw Exception('All fields are required');
-      }
-
-      if (!email.contains('@')) {
-        throw Exception('Please enter a valid email address');
-      }
-
-      if (password.length < 6) {
-        throw Exception('Password must be at least 6 characters');
-      }
-
-      // Simulate successful registration
-      final user = User(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        username: username,
-        email: email,
-      );
-
-      await _storageService.saveUserData(user.toJson());
-      _currentUser = user;
-    } catch (e) {
-      throw Exception('Registration failed: ${e.toString()}');
-    }
+    // Mock implementation
+    _currentUser = User(
+      id: '1',
+      email: email,
+      username: username,
+      avatarUrl: null,
+    );
+    await _storageService.saveUserData(_currentUser!.toJson());
   }
 
   Future<void> logout() async {
-    await _storageService.removeUserData();
     _currentUser = null;
+    await _storageService.removeUserData();
   }
 
   Future<void> updateProfile(String username, String? avatarUrl) async {
-    try {
-      if (_currentUser == null) {
-        throw Exception('No user logged in');
-      }
-
-      if (username.isEmpty) {
-        throw Exception('Username cannot be empty');
-      }
-
-      final updatedUser = _currentUser!.copyWith(
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(
         username: username,
         avatarUrl: avatarUrl,
       );
-
-      await _storageService.saveUserData(updatedUser.toJson());
-      _currentUser = updatedUser;
-    } catch (e) {
-      throw Exception('Profile update failed: ${e.toString()}');
+      await _storageService.saveUserData(_currentUser!.toJson());
     }
   }
 }

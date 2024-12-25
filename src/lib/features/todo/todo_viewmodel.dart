@@ -1,6 +1,7 @@
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:todo_apps/app/app.locator.dart';
+import 'package:todo_apps/app/app.router.dart';
 import 'package:todo_apps/features/todo/todo_repository.dart';
 
 class TodoViewModel extends BaseViewModel {
@@ -66,7 +67,7 @@ class TodoViewModel extends BaseViewModel {
   }
 
   void navigateToProfile() {
-    _navigationService.navigateToProfileView();
+    _navigationService.navigateTo(Routes.profileView);
   }
 
   void init() {

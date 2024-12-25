@@ -1,9 +1,10 @@
+import 'package:todo_apps/app/app.locator.dart';
 import 'package:todo_apps/services/todo_service.dart';
 
 class TodoRepository {
-  final TodoService _todoService;
+  final _todoService = locator<TodoService>();
 
-  TodoRepository(this._todoService);
+  TodoRepository();
 
   Future<List<Map<String, dynamic>>> getTodos() async {
     try {
